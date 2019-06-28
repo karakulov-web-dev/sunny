@@ -85,7 +85,7 @@ class ScheduleItemBody {
         foreach ($this->_paragraphs as &$item) {
             $item = strip_tags($item);
         }
-        $this->date = $this->_paragraphs[0];
+        $this->date = trim(str_replace("&nbsp;","", $this->_paragraphs[0]));
         $this->description = trim($this->_paragraphs[2]);
 
         $this->_paragraphs[1] = str_replace("&nbsp;","", $this->_paragraphs[1]);
@@ -116,9 +116,9 @@ class ScheduleItemBody {
     }
 }
 
-class Response {
-    function __construct() {
-        $shedule = new SunnySchedule('207','Расписание киносеансов','<p>Уважаемые посетители! Расписание сеансов может меняться, уточняйте информацию по телефону 2-77-82.</p>
+class SunnyResponse {
+    function __construct($dataId) {
+        $schedule = new SunnySchedule($dataId,'Расписание киносеансов','<p>Уважаемые посетители! Расписание сеансов может меняться, уточняйте информацию по телефону 2-77-82.</p>
 <p><span style="color: #ff0000;"><strong>27</strong></span><strong style="color: #ff0000;">&nbsp;июня (четверг)</strong></p>
 <p><span style="color: #000080;"><strong>10:00</strong></span> <a href="index.php?option=com_content&amp;view=article&amp;id=285:istoriya-igrushek-animatsiya-priklyucheniya-6-3d-4&amp;catid=20:kinoteatr"><strong>Лови момент</strong></a> 2D, комедия,&nbsp; Россия&nbsp; (150р)</p>
 <p><span style="color: #000080;"><strong>12:00</strong></span> <a href="index.php?option=com_content&amp;view=article&amp;id=279:istoriya-igrushek-animatsiya-priklyucheniya-6-3d&amp;catid=20:kinoteatr"><strong>История игрушек 4</strong></a>&nbsp;3D, анимация,&nbsp; США (120р)</p>
@@ -145,11 +145,11 @@ class Response {
     $this->error = false;
     $this->result = array();
     try {
-        $shedule->breakIntoParagraphs();
-        $shedule->textToObject();
-        $this->result = $shedule->days;
+        $schedule->breakIntoParagraphs();
+        $schedule->textToObject();
+        $this->result = $schedule->days;
     } catch (Exception $e) {
-       // $this->error =  'Исключение: ',  $e->getMessage(), "\n";
+        $this->error =  'Исключение: '.$e->getMessage()."\n";
     }
     }
     function send() {
@@ -157,7 +157,7 @@ class Response {
     }
 }
 
-$response = new Response();
+$response = new SunnyResponse(207);
 $response->send();
 
 
