@@ -71,7 +71,6 @@ class ScheduleItemBody {
         $this->_introText = "<p>&nbsp;<strong><span style=\"font-size: 14pt; color: #ff0000;\">с 4 по 24 июля</span></strong></p>
 <p><strong style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">Год:</strong><span style=\"color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">&nbsp;2019</span><br style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\" /><strong style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">Жанр:</strong><span style=\"color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\"> анимация</span><br style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\" /><strong style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">Страна:</strong><span style=\"color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">&nbsp;Индия, США</span><br style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\" /><strong style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">Возраст:</strong><span style=\"color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">&nbsp;6+<br /><strong>Режиссер</strong>: Тим Болтби, Ричард Финн<br /></span><strong style=\"padding: 0px; margin: 0px; color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">Время:</strong><span style=\"color: #666666; font-family: Tahoma, Georgia, 'Times New Roman', Times, serif; font-size: 13.2px;\">&nbsp;90 мин.&nbsp;</span></p>
 <section class=\"release-card-section\">
-<p class=\"release-card__description\">В ледяных горах Арктики терпит крушение самолет, управляемый археологом Джином.</p>
 ";
         $this->_fulltext = "
 <p class=\"release-card__description\">Аварию подстроил его коварный напарник, который похищает бесценную нефритовую статуэтку китайского божества – ключ к несметным сокровищам. На помощь Джину приходит король Арктики Норм. В компании с леммингами он отправляется в смертельно опасное путешествие. На этот раз обаятельный и простодушный мишка должен не только обезвредить злодея и вернуть бесценную реликвию, но и успеть на свадьбу своего эксцентричного дедушки…<span style=\"background-color: inherit; color: inherit; font-size: 1rem;\"></span></p>
@@ -97,6 +96,8 @@ class ScheduleItemBody {
         $this->age = $this->matchInParagraph('/Возраст:(.*)Режиссер/');
         $this->producer = $this->matchInParagraph('/Режиссер:(.*)Актеры/');
         $this->actors = $this->matchInParagraph('/Актеры:(.*)/');
+        $this->youtubeId = $this->matchInParagraph('/{youtube}(.*){\/youtube}/' , $this->_paragraphs[3]);
+        $this->all  = $this->_paragraphs;
         unset($this->_paragraphs);
         
     }
@@ -106,8 +107,11 @@ class ScheduleItemBody {
         unset($this->_fulltext);
         unset($this->_concatText);
     }
-    function matchInParagraph($regExp) {
-        $status = preg_match($regExp, $this->_paragraphs[1], $matches, PREG_OFFSET_CAPTURE);
+    function matchInParagraph($regExp, $paragraph) {
+        if (!$paragraph) {
+            $paragraph = $this->_paragraphs[1];
+        }
+        $status = preg_match($regExp, $paragraph, $matches, PREG_OFFSET_CAPTURE);
         if ($status) {
             $value = $matches[1][0];
         } else {
@@ -149,8 +153,49 @@ class SunnyResponse {
     }
 }
 
+//
+
+class FilmContainer {
+   function __construct($schedule) {
+        foreach($schedule as $day) {
+            foreach ($day->items as $item) {
+                $this->setItem($item);
+            }
+        }
+        $this->createItems();
+    }
+    function  setItem($item) {
+        $this->{$item->id} = $item;
+    }
+    function createItems() {
+        $items = array();
+        foreach ($this as $item) {
+            $items[] = new FilmContainerItem($item);
+        }
+        $this->items = $items;
+    }
+}
+
+class FilmContainerItem {
+    function __construct($item) {
+        $this->id = $item->id;
+        $this->name = $item->body->title;
+        $this->logo = $item->body->images->image_intro;
+        $this->big_logo = $item->body->images->image_fulltext;
+        $this->genre = $item->body->genre;
+        $this->country = $item->body->country;
+        $this->director = $item->body->producer;
+        $this->starring = $item->body->actors;
+        $this->age_limit = $item->body->age;
+        $this->description = $item->body->description;
+        $this->date = $item->body->date;
+        $this->youtube = $item->body->youtubeId;
+    }
+}
+
 $response = new SunnyResponse(212);
-$response->send();
+$today = new FilmContainer($response->result);
+echo json_encode($today->items, JSON_UNESCAPED_UNICODE);
 
 
 
