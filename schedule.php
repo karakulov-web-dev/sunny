@@ -87,24 +87,29 @@ class ScheduleItemBody {
         $this->description = trim($this->_paragraphs[2]);
 
         $this->_paragraphs[1] = str_replace("&nbsp;","", $this->_paragraphs[1]);
-        
         $this->year = $this->matchInParagraph('/Год:(....)/', 0);
         $this->genre = $this->matchInParagraph('/Жанр:(.*)Страна/', 0);
         $this->country = $this->matchInParagraph('/Страна:(.*)Возраст/', 0);
         $this->age = $this->matchInParagraph('/Возраст:(.*)Режиссер/', 0);
         $this->producer = $this->matchInParagraph('/Режиссер:(.*)Актеры/', 0);
         $this->actors = $this->matchInParagraph('/Актеры:(.*)/', 0);
-        $this->youtubeId = $this->matchInParagraph('/{youtube}(.*){\/youtube}/' , $this->_paragraphs[3]);
+        $this->youtubeId = $this->matchInParagraph('/{youtube}(.*){\/youtube}/' , $this->_concatText);
+        if ($this->youtubeId == "Нет данных") {
+            $this->youtubeId = $this->matchInParagraph('/{youtube}(.*){\/youtube}/' , $this->_concatText);
+        }
         $gallery = $this->matchInParagraph('/{gallery}(.*):180:180/' , $this->_paragraphs[4]);
+        if ($gallery == "Нет данных") {
+            $gallery = $this->matchInParagraph('/{gallery}(.*):180:180/' , $this->_concatText);
+        }
         $this->images->image_fulltext = "http://xn--42-mlcqimbe0a8d2b.xn--p1ai/images/".$gallery."/1.jpg";
         $this->images->image_intro = "http://xn--42-mlcqimbe0a8d2b.xn--p1ai/images/".$gallery."/1.jpg";
         unset($this->_paragraphs);
+        unset($this->_concatText);
     }
     function breakIntoParagraphs() {
         $this->_paragraphs = explode("</p>", $this->_concatText);
         unset($this->_introText);
         unset($this->_fulltext);
-        unset($this->_concatText);
     }
     function matchInParagraph($regExp, $paragraph) {
         if (!$paragraph) {
