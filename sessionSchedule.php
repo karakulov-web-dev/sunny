@@ -30,8 +30,8 @@ class SessionScheduleFilm {
         $this->film = $film;
     }
     function toString() {
-        $str = preg_replace("/(\d\d:\d\d)/" , "<b>\\1</b> - " , $this->film->text);
-        return preg_replace("/(\(\d.*р\))/" , "<b>\\1</b> - " , $str);
+        $str = preg_replace("/(\d\d:\d\d)/" , "<b>\\1</b>" , $this->film->text);
+        return preg_replace("/(\(\d.*р\))/" , "<b>\\1</b>" , $str);
     }
 }
 
